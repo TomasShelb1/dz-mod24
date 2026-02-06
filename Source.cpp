@@ -2,84 +2,101 @@
 #include <fstream>
 #include <string>
 
-struct Directory {
-    std::string company_name;
+class Company {
+private:
+    std::string name;
     std::string owner;
     std::string phone;
     std::string address;
     std::string activity;
+
+public:
+    Company(std::string n = "", std::string o = "", std::string p = "", std::string ad = "", std::string ac = "")
+        : name(n), owner(o), phone(p), address(ad), activity(ac) {
+    }
+
+    std::string getName() const { return name; }
+    std::string getOwner() const { return owner; }
+    std::string getPhone() const { return phone; }
+    std::string getAddress() const { return address; }
+    std::string getActivity() const { return activity; }
+
+
+    void print() const {
+        std::cout << name << " | " << owner << " | " << phone << " | " << address << " | " << activity << "\n";
+    }
 };
 
-void add_record() {
+void saveToFile(const Company& c) {
     std::ofstream file("directory.txt", std::ios::app);
-    Directory d;
-
-    std::cout << "enter company name: ";
-    std::cin >> d.company_name;
-    std::cout << "enter owner: ";
-    std::cin >> d.owner;
-    std::cout << "enter phone: ";
-    std::cin >> d.phone;
-    std::cout << "enter address: ";
-    std::cin >> d.address;
-    std::cout << "enter activity: ";
-    std::cin >> d.activity;
-
-    file << d.company_name << " " << d.owner << " " << d.phone << " "
-        << d.address << " " << d.activity << "\n";
-
-    file.close();
-    std::cout << "record added" << std::endl;
+    if (file.is_open()) {
+        file << c.getName() << " " << c.getOwner() << " " << c.getPhone() << " "
+            << c.getAddress() << " " << c.getActivity() << "\n";
+        file.close();
+    }
 }
 
-void display_all() {
+void showAllRecords() {
     std::ifstream file("directory.txt");
-    Directory d;
-    std::cout << "\nall records:\n";
-    while (file >> d.company_name >> d.owner >> d.phone >> d.address >> d.activity) {
-        std::cout << d.company_name << " | " << d.owner << " | " << d.phone
-            << " | " << d.address << " | " << d.activity << "\n";
+    std::string n, o, p, ad, ac;
+    std::cout << "records list:\n";
+    while (file >> n >> o >> p >> ad >> ac) {
+        Company temp(n, o, p, ad, ac);
+        temp.print();
     }
     file.close();
 }
 
-void search(int type) {
+void findInFile(std::string query, int type) {
     std::ifstream file("directory.txt");
-    std::string query;
-    std::cout << "enter search value: ";
-    std::cin >> query;
-
-    Directory d;
+    std::string n, o, p, ad, ac;
     bool found = false;
-    while (file >> d.company_name >> d.owner >> d.phone >> d.address >> d.activity) {
+
+    while (file >> n >> o >> p >> ad >> ac) {
+        Company temp(n, o, p, ad, ac);
         bool match = false;
-        if (type == 1 && d.company_name == query) match = true;
-        if (type == 2 && d.owner == query) match = true;
-        if (type == 3 && d.phone == query) match = true;
-        if (type == 4 && d.activity == query) match = true;
+
+        if (type == 1 && temp.getName() == query) match = true;
+        else if (type == 2 && temp.getOwner() == query) match = true;
+        else if (type == 3 && temp.getPhone() == query) match = true;
+        else if (type == 4 && temp.getActivity() == query) match = true;
 
         if (match) {
-            std::cout << "found: " << d.company_name << " " << d.owner << " "
-                << d.phone << " " << d.address << " " << d.activity << "\n";
+            std::cout << "match found: ";
+            temp.print();
             found = true;
         }
     }
-    if (!found) std::cout << "no records found.\n";
+    if (!found) std::cout << "nothing found.\n";
     file.close();
 }
 
 int main() {
-    std::cout << "test1" << std::endl;
+    std::cout << "test" << std::endl;
     int choice;
     while (true) {
-        std::cout << "\n1. add\n2. display all\n3. search by name\n4. search by owner\n5. search by phone\n6. search by activity\n";
-        std::cout << "7. exit\nchoice: ";
+        std::cout << "1. add record\n2. show all\n3. search\n4. exit\nchoice: ";
         std::cin >> choice;
 
-        if (choice == 1) add_record();
-        else if (choice == 2) display_all();
-        else if (choice >= 3 && choice <= 6) search(choice - 2);
-        else if (choice == 7) break;
-        else std::cout << "wrong choice.\n";
+        if (choice == 1) {
+            std::string n, o, p, ad, ac;
+            std::cout << "enter name, owner, phone, address, activity: ";
+            std::cin >> n >> o >> p >> ad >> ac;
+            Company newComp(n, o, p, ad, ac);
+            saveToFile(newComp);
+        }
+        else if (choice == 2) {
+            showAllRecords();
+        }
+        else if (choice == 3) {
+            std::string q;
+            int t;
+            std::cout << "1.name 2.owner 3.phone 4.activity: ";
+            std::cin >> t;
+            std::cout << "enter search query: ";
+            std::cin >> q;
+            findInFile(q, t);
+        }
+        else if (choice == 4) break;
     }
 }
